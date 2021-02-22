@@ -37,6 +37,8 @@ public class InstagramBot {
     };
 
     public static void startBot() {
+        if (!Database.isConnected())
+            return;
         try {
             scheduler = StdSchedulerFactory.getDefaultScheduler();
             scheduler.start();
