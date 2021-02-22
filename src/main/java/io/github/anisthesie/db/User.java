@@ -2,9 +2,11 @@ package io.github.anisthesie.db;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
+import com.github.instagram4j.instagram4j.requests.direct.DirectThreadsBroadcastRequest;
 import com.github.instagram4j.instagram4j.requests.media.MediaCommentRequest;
 import io.github.anisthesie.bot.InstagramBot;
-import io.github.anisthesie.bot.actions.FollowToken;
+import io.github.anisthesie.bot.actions.follow.FollowToken;
+import io.github.anisthesie.bot.actions.scheduling.ScheduledPost;
 import io.github.anisthesie.bot.jobs.DefaultUserJob;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,10 +26,7 @@ public class User {
 
     @Getter
     @Setter
-    private boolean following, commenting;
-
-   // @Getter
-   // private final List<FollowToken> followTokenList = new ArrayList<>();
+    private boolean following, commenting, messaging;
 
     @Getter
     private final List<FollowToken> locationTokenList = new ArrayList<>();
@@ -44,16 +43,25 @@ public class User {
     @Getter
     private int failure = 0;
 
+    @Getter
+    @Setter
+    private String customMessage;
+
+    @Getter @Setter
+    private ScheduledPost scheduledPost;
+
     public User(String username, String password) {
         this.username = username;
         this.password = password;
     }
 
-    public User(String username, String password, boolean following, boolean commenting) {
+    public User(String username, String password, boolean following, boolean commenting, boolean messaging, String customMessage) {
         this.username = username;
         this.password = password;
         this.following = following;
         this.commenting = commenting;
+        this.customMessage = customMessage;
+        this.messaging = messaging;
     }
 
     public void initJob() {
@@ -75,6 +83,10 @@ public class User {
         }
     }
 
+    public boolean hasScheduledPost() {
+        return scheduledPost != null;
+    }
+
     public boolean login() {
         try {
             client = IGClient.builder()
@@ -88,8 +100,19 @@ public class User {
         return isLogged();
     }
 
-    public void postComment(String itemId, String text) throws InterruptedException, ExecutionException, TimeoutException {
-        new MediaCommentRequest(itemId, text).execute(this.client).get(20, TimeUnit.SECONDS);
+    public void postComment(String itemId, String text) {
+        try {
+            new MediaCommentRequest(itemId, text).execute(this.client).get(20, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendMessage(String text, String thread_id) throws InterruptedException, ExecutionException, TimeoutException {
+        new DirectThreadsBroadcastRequest(
+                new DirectThreadsBroadcastRequest.BroadcastTextPayload(text, thread_id)).execute(client)
+                .get(20, TimeUnit.SECONDS);
+
     }
 
     public boolean isLogged() {
