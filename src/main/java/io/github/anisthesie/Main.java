@@ -21,8 +21,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-       // Database.initDatabase();
-       // InstagramBot.startBot();
+        System.setProperty("server.port", System.getenv("PORT"));
+        Database.initDatabase();
+        InstagramBot.startBot();
         SpringApplication.run(Main.class, args);
     }
 
