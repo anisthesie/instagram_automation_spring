@@ -21,11 +21,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        //System.setProperty("server.port", System.getenv("PORT"));
+        System.setProperty("server.port", System.getenv("PORT"));
         Database.initDatabase();
         InstagramBot.startBot();
         SpringApplication.run(Main.class, args);
     }
+
+    @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
+    @ResponseBody
+    String index(){
+	return "API Status = Running.\n Database Status = " + Database.isConnected() ? "Connected" : "Not Connected";   
+    }
+
 
     @GetMapping(value = "/send_dm", produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
