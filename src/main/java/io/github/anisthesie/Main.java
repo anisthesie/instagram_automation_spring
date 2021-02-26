@@ -29,8 +29,8 @@ public class Main {
 
     @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
-    String index(){
-	return "API Status = Running.\n Database Status = " + Database.isConnected() ? "Connected" : "Not Connected";   
+    String index() {
+        return "API Status = Running.\n Database Status = " + (Database.isConnected() ? "Connected" : "Not Connected");
     }
 
 
