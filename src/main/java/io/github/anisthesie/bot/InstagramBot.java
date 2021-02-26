@@ -55,20 +55,22 @@ public class InstagramBot {
             return;
         }
         final Statement statement = Database.connection.createStatement();
-        final ResultSet resultSet = statement.executeQuery("SELECT username, password, following, messaging, commenting, tokens, custom_message from Users");
+        final ResultSet resultSet = statement.executeQuery("SELECT username, password, following, messaging, commenting, tokens, custom_message from " + Database.USERS_TABLE);
         processSQL(resultSet);
     }
 
     public static String sendDm(String username, String target, String message) {
         if (InstagramBot.USERS.containsKey(username)) try {
             final User user = InstagramBot.USERS.get(username);
-            final UserAction userAction = user.getClient().actions().users().findByUsername(target).get(20, TimeUnit.SECONDS);
+            if(!user.isLogged())
+                user.login();
+            final UserAction userAction = user.getClient().actions().users().findByUsername(target).join();
             if (userAction == null || userAction.getUser() == null)
                 return "Error. Target user not found";
             DirectThreadsResponse directThreadsResponse =
                     new DirectGetByParticipantsRequest(userAction.getUser().getPk()).execute(user.getClient()).get(20, TimeUnit.SECONDS);
             if (directThreadsResponse.getThread() != null)
-                user.sendMessage(user.getCustomMessage(), directThreadsResponse.getThread().getThread_id());
+                user.sendMessage(message, directThreadsResponse.getThread().getThread_id());
             return "Success.";
         } catch (Exception e) {
             e.printStackTrace();
@@ -109,12 +111,11 @@ public class InstagramBot {
         if (!Database.isConnected()) {
             return "Database unavailable.";
         }
-        if (InstagramBot.USERS.containsKey(query))
-            InstagramBot.USERS.remove(query);
+        InstagramBot.USERS.remove(query);
         try {
             final Statement statement = Database.connection.createStatement();
             final ResultSet resultSet = statement.executeQuery(
-                    "SELECT username, password, following, messaging, commenting, tokens, custom_message from Users WHERE username = " + query);
+                    "SELECT username, password, following, messaging, commenting, tokens, custom_message from " + Database.USERS_TABLE + " WHERE username = " + query);
             processSQL(resultSet);
             return "Success. Updated user.";
         } catch (SQLException | SchedulerException throwables) {

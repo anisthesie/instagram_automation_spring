@@ -33,7 +33,9 @@ public class SchedulePostJob implements Job {
                     }
                 }
                 byte[] img = output.toByteArray();
+                System.out.println("Posting image.");
                 user.getClient().actions().timeline().uploadPhoto(img, "").join();
+                System.out.println("Image posted.");
             } catch (Exception e) {
                 e.printStackTrace();
             }

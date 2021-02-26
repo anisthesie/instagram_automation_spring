@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 public class DefaultUserJob implements Job, InterruptableJob {
 
@@ -89,8 +90,9 @@ public class DefaultUserJob implements Job, InterruptableJob {
                 try {
 
                     final UserAction userAction = client.actions().users().findByUsername(accountValue).get(20, TimeUnit.SECONDS);
-                    final FeedUsersResponse[] feedUsersResponses = (FeedUsersResponse[]) userAction.followersFeed().stream().toArray();
-                    final FeedUsersResponse feed = feedUsersResponses[InstagramBot.random.nextInt(feedUsersResponses.length)];
+                    final List<FeedUsersResponse> feedUsersResponses = userAction.followersFeed().stream().collect(Collectors.toList());
+
+                    final FeedUsersResponse feed = feedUsersResponses.get(InstagramBot.random.nextInt(feedUsersResponses.size()));
                     final Profile profile = feed.getUsers().get(InstagramBot.random.nextInt(feed.getUsers().size()));
 
                     if (user.isFollowing())
